@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IBOV · Hurst Comparativo</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f5f6f8;--card:#ffffff;--border:#e2e5ea;--text:#1a1d23;--muted:#6b7280;
+  --green-bg:#eaf3de;--green-text:#27500a;--green-border:#97c459;
+  --red-bg:#fcebeb;--red-text:#791f1f;--red-border:#f09595;
+  --amber-bg:#faeeda;--amber-text:#633806;--amber-border:#ef9f27;
+  --blue-bg:#e6f1fb;--blue-text:#0c447c;--blue-border:#85b7eb;
+  --purple-bg:#f3e8ff;--purple-text:#581c87;--purple-border:#c084fc;
+  --surface:#f9fafb;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#0f1117;--card:#181c25;--border:#252b36;--text:#e8ecf0;--muted:#6b7280;
+    --green-bg:#173404;--green-text:#c0dd97;--green-border:#3b6d11;
+    --red-bg:#501313;--red-text:#f7c1c1;--red-border:#a32d2d;
+    --amber-bg:#412402;--amber-text:#fcd34d;--amber-border:#854f0b;
+    --blue-bg:#042c53;--blue-text:#b5d4f4;--blue-border:#185fa5;
+    --purple-bg:#2e1065;--purple-text:#e9d5ff;--purple-border:#7c3aed;
+    --surface:#13171f;
+  }
+}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;font-size:13px}
+.container{max-width:1200px;margin:0 auto;padding:20px 16px}
+
+/* HEADER */
+.header{display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+.header-left h1{font-size:16px;font-weight:600;color:var(--text)}
+.header-left p{font-size:11px;color:var(--muted);margin-top:3px}
+.badge{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);background:var(--card);border:0.5px solid var(--border);padding:4px 12px;border-radius:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:#22c55e;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* FECHAMENTO */
+.fech{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.fech-val{font-size:26px;font-weight:600;color:var(--text)}
+.fech-meta{font-size:11px;color:var(--muted)}
+
+/* GRID 4 colunas */
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media(max-width:700px){.grid4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:400px){.grid4{grid-template-columns:1fr}}
+
+.col{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px}
+.col.highlight{border-color:var(--green-border);border-width:1.5px}
+
+.win-lbl{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:500}
+.win-period{font-size:12px;font-weight:500;color:var(--text);margin-top:2px}
+.win-dates{font-size:10px;color:var(--muted);margin-top:1px}
+.divider{height:0.5px;background:var(--border)}
+
+.h-val{font-size:26px;font-weight:600;line-height:1}
+.h-green{color:var(--green-text)}
+.h-red{color:var(--red-text)}
+.h-amber{color:var(--amber-text)}
+.section-lbl{font-size:10px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:1px;font-weight:500}
+.pill{display:inline-block;padding:2px 9px;border-radius:5px;font-size:11px;font-weight:500;border:0.5px solid}
+.pill-green{background:var(--green-bg);color:var(--green-text);border-color:var(--green-border)}
+.pill-red{background:var(--red-bg);color:var(--red-text);border-color:var(--red-border)}
+.pill-amber{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border)}
+.pill-blue{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-border)}
+.pill-purple{background:var(--purple-bg);color:var(--purple-text);border-color:var(--purple-border)}
+
+.vol-val{font-size:18px;font-weight:500;color:var(--text);margin-bottom:4px}
+
+.sinal-box{border-radius:7px;padding:9px 11px;font-size:11px;font-weight:500;border:0.5px solid}
+.sinal-green{background:var(--green-bg);color:var(--green-text);border-color:var(--green-border)}
+.sinal-red{background:var(--red-bg);color:var(--red-text);border-color:var(--red-border)}
+.sinal-amber{background:var(--amber-bg);color:var(--amber-text);border-color:var(--amber-border)}
+.sinal-blue{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue-border)}
+.sinal-desc{font-size:10px;margin-top:4px;opacity:.8;line-height:1.4;font-weight:400}
+
+.range-block{background:var(--surface);border-radius:7px;padding:9px 11px}
+.range-row{display:flex;justify-content:space-between;padding:2px 0;font-size:11px}
+.range-lbl{color:var(--muted)}
+.range-v{font-weight:500;color:var(--text)}
+
+.vol-table{width:100%;font-size:10px;border-collapse:collapse}
+.vol-table td{padding:2px 0;color:var(--muted)}
+.vol-table td:last-child{text-align:right}
+.vol-table tr.active td{color:var(--text);font-weight:500}
+.arrow{color:var(--green-text);margin-right:2px}
+
+/* HISTORICO */
+.hist-card{background:var(--card);border:0.5px solid var(--border);border-radius:10px;padding:14px;overflow-x:auto}
+.hist-title{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:500;margin-bottom:12px}
+table.hist{width:100%;border-collapse:collapse;font-size:11px;min-width:700px}
+table.hist thead th{text-align:left;padding:6px 10px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:0.5px solid var(--border);font-weight:500}
+table.hist tbody tr{border-bottom:0.5px solid var(--border)}
+table.hist tbody tr:hover{background:var(--surface)}
+table.hist tbody td{padding:7px 10px}
+td.r{text-align:right}
+
+.footer{font-size:10px;color:var(--muted);text-align:center;margin-top:14px;line-height:1.6}
+.legend{display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.legend-item{display:flex;align-items:center;gap:5px}
+.ldot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+#loading{text-align:center;padding:60px 0;color:var(--muted)}
+#error{text-align:center;padding:60px 0;color:var(--red-text)}
+.spin{display:inline-block;width:20px;height:20px;border:2px solid var(--border);border-top-color:#3b82f6;border-radius:50%;animation:spin .8s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="container">
+  <div id="loading"><div class="spin"></div><br>Carregando dados do IBOV...</div>
+  <div id="error" style="display:none"></div>
+  <div id="app" style="display:none"></div>
+</div>
+
+<script>
+const DATA_URL = "data.json";
+const WINDOWS  = [11, 21, 63, 252];
+const WIN_LABEL = {11:"11 dias · 2 semanas", 21:"21 dias · 1 mês", 63:"63 dias · 1 trimestre", 252:"252 dias · 1 ano"};
+
+function hurstColor(h){
+  if(h===null||h===undefined) return "";
+  if(h>0.55) return "h-green";
+  if(h<0.45) return "h-red";
+  return "h-amber";
+}
+function pillClass(regime){
+  return {Tendência:"pill-green",Reversão:"pill-red",Aleatório:"pill-amber",
+    Comprimida:"pill-blue","Stress Extremo":"pill-red","Stress Elevado":"pill-amber",Normal:"pill-green"}[regime]||"pill-amber";
+}
+function sinalClass(sinal){
+  if(!sinal) return "sinal-amber";
+  if(sinal.includes("Tendência")) return "sinal-green";
+  if(sinal.includes("Reversão")||sinal.includes("Extremo")) return "sinal-red";
+  return "sinal-amber";
+}
+function addDays(dateStr, n){
+  const d=new Date(dateStr+"T12:00:00Z"); d.setDate(d.getDate()-n);
+  return d.toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"});
+}
+function fmt(v,d=4){ return v!=null?Number(v).toFixed(d):"—"; }
+function fmtPts(v){ return v!=null?Number(v).toLocaleString("pt-BR"):"—"; }
+
+function buildColumn(w, j, dateStr){
+  const isHigh = j.regime_h==="Tendência";
+  const hcls   = hurstColor(j.hurst);
+  const rng    = j.range||{};
+  const sc     = sinalClass(j.sinal);
+
+  // Vol percentil table
+  const thresholds = [
+    {label:"< 14,7%",   name:"Comprimida"},
+    {label:"14,7–18,2%",name:"Normal"},
+    {label:"18,2–19,8%",name:"Stress Elevado"},
+    {label:"> 19,8%",   name:"Stress Extremo"},
+  ];
+  const volTableRows = thresholds.map(t=>{
+    const active = t.name===j.regime_v;
+    return `<tr class="${active?"active":""}">
+      <td>${active?'<span class="arrow">◄</span>':''} ${t.label}</td>
+      <td>${t.name}</td>
+    </tr>`;
+  }).join("");
+
+  const startDate = addDays(dateStr, w);
+
+  return `
+  <div class="col ${isHigh?"highlight":""}">
+    <div>
+      <div class="win-lbl">${WIN_LABEL[w]}</div>
+      <div class="win-dates">${startDate} → ${new Date(dateStr+"T12:00:00Z").toLocaleDateString("pt-BR",{day:"2-digit",month:"2-digit",year:"2-digit"})}</div>
+    </div>
+    <div class="divider"></div>
+    <div>
+      <div class="section-lbl">Hurst (H)</div>
+      <div class="h-val ${hcls}">${fmt(j.hurst,4)}</div>
+      <div style="margin-top:5px"><span class="pill ${pillClass(j.regime_h)}">${j.regime_h||"—"}</span></div>
+    </div>
+    <div>
+      <div class="section-lbl">Vol EWMA a.a.</div>
+      <div class="vol-val">${fmt(j.vol_ewma,1)}%</div>
+      <div><span class="pill ${pillClass(j.regime_v)}">${j.regime_v||"—"}</span></div>
+    </div>
+    <div class="divider"></div>
+    <div class="sinal-box ${sc}">
+      ${j.sinal||"—"}
+      <div class="sinal-desc">${j.sinal_desc||""}</div>
+    </div>
+    <div class="range-block">
+      <div class="section-lbl" style="margin-bottom:5px">Range estimado</div>
+      <div class="range-row"><span class="range-lbl">½ Range</span><span class="range-v">${fmtPts(rng.meio)} pts</span></div>
+      <div class="range-row"><span class="range-lbl">1σ Range</span><span class="range-v">${fmtPts(rng.um_sig)} pts</span></div>
+      <div class="range-row"><span class="range-lbl">1,5× Range</span><span class="range-v">${fmtPts(rng.um5)} pts</span></div>
+    </div>
+    <div>
+      <div class="section-lbl">Regime de volatilidade</div>
+      <table class="vol-table">${volTableRows}</table>
+    </div>
+  </div>`;
+}
+
+function buildHistRow(row){
+  const j30 = row.janelas?.["21"] || {};
+  const j63 = row.janelas?.["63"] || {};
+  const hcls = h => h==null?"":h>0.55?"color:var(--green-text)":h<0.45?"color:var(--red-text)":"color:var(--amber-text)";
+  const sc = sinalClass(j63.sinal);
+  const scStyle = {sinal_green:"var(--green-text)",sinal_red:"var(--red-text)",sinal_amber:"var(--amber-text)"}[sc]||"var(--muted)";
+  return `<tr>
+    <td>${row.date}</td>
+    <td class="r">${Number(row.close).toLocaleString("pt-BR")}</td>
+    <td class="r" style="${hcls(row.janelas?.["11"]?.hurst)}">${fmt(row.janelas?.["11"]?.hurst,4)}</td>
+    <td class="r" style="${hcls(j30.hurst)}">${fmt(j30.hurst,4)}</td>
+    <td class="r" style="${hcls(j63.hurst)}">${fmt(j63.hurst,4)}</td>
+    <td class="r" style="${hcls(row.janelas?.["252"]?.hurst)}">${fmt(row.janelas?.["252"]?.hurst,4)}</td>
+    <td class="r">${fmt(j63.vol_ewma,1)}%</td>
+    <td><span class="pill ${pillClass(j63.regime_v)}" style="font-size:10px">${j63.regime_v||"—"}</span></td>
+    <td style="color:${scStyle};font-weight:500;font-size:11px">${j63.sinal||"—"}</td>
+  </tr>`;
+}
+
+async function init(){
+  try{
+    const res = await fetch(DATA_URL+"?t="+Date.now());
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const json = await res.json();
+    render(json);
+  }catch(e){
+    document.getElementById("loading").style.display="none";
+    const err=document.getElementById("error");
+    err.style.display="block";
+    err.innerHTML=`<b>Erro ao carregar dados</b><br><small>${e.message}</small><br><br>
+    <small style="color:var(--muted)">Execute o GitHub Actions manualmente:<br>
+    Actions → Atualizar Dados IBOV → Run workflow</small>`;
+  }
+}
+
+function render(json){
+  document.getElementById("loading").style.display="none";
+  document.getElementById("app").style.display="block";
+
+  const l   = json.latest;
+  const ts  = new Date(json.updated_at);
+  const fmtDate = ts.toLocaleString("pt-BR",{timeZone:"America/Sao_Paulo",day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"});
+
+  const cols = WINDOWS.map(w => buildColumn(w, l.janelas[w]||{}, l.date)).join("");
+
+  // Histórico últimos 20 pregões
+  const histRows = json.data.slice(-20).reverse().map(buildHistRow).join("");
+
+  document.getElementById("app").innerHTML = `
+    <div class="header">
+      <div class="header-left">
+        <h1>WIN Regime · Hurst Comparativo · IBOVESPA</h1>
+        <p>EWMA λ=0,94 · Método R/S · Fonte: brapi.dev</p>
+      </div>
+      <div class="badge"><span class="dot"></span>Atualizado: ${fmtDate}</div>
+    </div>
+
+    <div class="fech">
+      <div>
+        <div class="fech-meta">Último fechamento</div>
+        <div class="fech-val">${Number(l.close).toLocaleString("pt-BR")} pts</div>
+      </div>
+      <div style="color:var(--muted);font-size:12px">${l.date}</div>
+    </div>
+
+    <div class="grid4">${cols}</div>
+
+    <div class="hist-card">
+      <div class="hist-title">Histórico · últimos 20 pregões</div>
+      <table class="hist">
+        <thead><tr>
+          <th>Data</th><th class="r">Fechamento</th>
+          <th class="r">H11</th><th class="r">H21</th><th class="r">H63</th><th class="r">H252</th>
+          <th class="r">Vol 63d</th><th>Regime Vol</th><th>Sinal 63d</th>
+        </tr></thead>
+        <tbody>${histRows}</tbody>
+      </table>
+    </div>
+
+    <div class="footer">
+      Sinal = filtro de contexto estatístico · Não é gatilho de entrada · Combine com leitura de fluxo e nível
+      <div class="legend">
+        <div class="legend-item"><span class="ldot" style="background:var(--green-border)"></span>H &gt; 0.55 · Tendência</div>
+        <div class="legend-item"><span class="ldot" style="background:var(--red-border)"></span>H &lt; 0.45 · Reversão</div>
+        <div class="legend-item"><span class="ldot" style="background:var(--amber-border)"></span>0.45–0.55 · Aleatório</div>
+      </div>
+    </div>
+  `;
+}
+
+init();
+</script>
+</body>
+</html>
