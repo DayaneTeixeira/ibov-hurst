@@ -2,6 +2,7 @@ import requests
 import numpy as np
 import pandas as pd
 import json
+import math
 from datetime import datetime
 import os
 
@@ -18,7 +19,7 @@ VOL_THRESHOLDS = {
 
 # ─────────────────────────────────────────────────────────────────────────────
 def fetch_brapi(token=None):
-    """Puxa histórico do IBOV via brapi.dev (gratuito, sem token)."""
+    """Puxa histórico do IBOV via brapi.dev."""
     headers = {"User-Agent": "Mozilla/5.0"}
     params  = {"range": "2y", "interval": "1d", "fundamental": "false"}
     if token:
@@ -30,10 +31,19 @@ def fetch_brapi(token=None):
     data = r.json()
 
     hist = data["results"][0]["historicalDataPrice"]
-    df = pd.DataFrame(hist)[["date", "close"]].dropna()
-    df["date"]  = pd.to_datetime(df["date"], unit="s")
+    df = pd.DataFrame(hist)
+
+    # brapi pode retornar "close" ou "adjclose"
+    if "close" not in df.columns and "adjclose" in df.columns:
+        df = df.rename(columns={"adjclose": "close"})
+
+    df = df[["date", "close"]].dropna()
+    df = df[df["close"] > 0]  # remove zeros/inválidos
+    df["date"] = pd.to_datetime(df["date"], unit="s", errors="coerce")
+    df = df.dropna(subset=["date"])
     df = df.rename(columns={"close": "Close"})
     df = df.sort_values("date").set_index("date")
+    print(f"   brapi: {len(df)} pregões, último={df.index[-1].date()}, close={df['Close'].iloc[-1]:.0f}")
     return df
 
 def fetch_yfinance_fallback():
@@ -42,7 +52,18 @@ def fetch_yfinance_fallback():
     tk = yf.Ticker("^BVSP")
     df = tk.history(period="2y", interval="1d")[["Close"]].dropna()
     df.index = pd.to_datetime(df.index).tz_localize(None)
+    df = df[df["Close"] > 0]
     return df.sort_index()
+
+def clean_float(v):
+    """Converte NaN/Inf para None (JSON-safe)."""
+    if v is None:
+        return None
+    try:
+        f = float(v)
+        return None if (math.isnan(f) or math.isinf(f)) else round(f, 4)
+    except:
+        return None
 
 # ─────────────────────────────────────────────────────────────────────────────
 def hurst_rs(series, min_n=5):
@@ -154,9 +175,13 @@ def main():
         row = {"date": date_str, "close": close, "janelas": {}}
 
         for w in WINDOWS:
+            if i < w:
+                continue
             seg   = log_rets[max(0, i-w):i]
-            h     = hurst_rs(seg)
-            v     = ewma_vol(seg)
+            if len(seg) < 6:
+                continue
+            h     = clean_float(hurst_rs(seg))
+            v     = clean_float(ewma_vol(seg))
             rh    = classify_hurst(h)
             rv    = vol_regime(v)
             s, sd = sinal(rh, rv)
@@ -164,7 +189,7 @@ def main():
 
             row["janelas"][str(w)] = {
                 "hurst":       h,
-                "vol_ewma":    v,
+                "vol_ewma":    round(v, 2) if v is not None else None,
                 "regime_h":    rh,
                 "regime_v":    rv,
                 "sinal":       s,
@@ -185,8 +210,11 @@ def main():
     }
 
     os.makedirs("docs", exist_ok=True)
+    # Serializa garantindo que NaN/Inf viram null
+    json_str = json.dumps(output, separators=(",", ":"), allow_nan=False,
+                          default=lambda x: None if (isinstance(x, float) and (math.isnan(x) or math.isinf(x))) else x)
     with open("docs/data.json", "w") as f:
-        json.dump(output, f, separators=(",", ":"))
+        f.write(json_str)
 
     l = results[-1]
     print(f"\n✅ {len(results)} pregões salvos em docs/data.json")
